@@ -33,8 +33,8 @@ docker build -t my-postgres-das:latest .
 ```
 
 This command:
-	1.	Pulls the base Postgres image (ghcr.io/cloudnative-pg/postgresql:15-bookworm).
-	2.	Installs required dependencies and compiles the DAS extension.
+1. Pulls the base Postgres image (ghcr.io/cloudnative-pg/postgresql:15-bookworm).
+2. Installs required dependencies and compiles the DAS extension.
 
 ## Run the Container
 
