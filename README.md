@@ -80,22 +80,4 @@ You will be prompted for the password (in this example, `mysecret`).
 
 ## Using the DAS Extension
 
-The DAS PostgreSQL extension is also installed inside the container.
-To configure it to use a specific DAS server running in your host (i.e. outside the container), do:
-
-```sql
-CREATE EXTENSION IF NOT EXISTS hstore;
-CREATE EXTENSION IF NOT EXISTS multicorn;
-DROP SERVER IF EXISTS das_python_mock;
-CREATE SERVER das_python_mock FOREIGN DATA WRAPPER multicorn OPTIONS (
-  wrapper   'multicorn_das.DASFdw',
-  das_url   'host.docker.internal:50051',   -- Hostname host.docker.internal represents your local host outside docker.
-                                            -- 50051 must be set to the port number where your DAS server is running outside docker.
-  das_type  '<das type>'                    -- The type of your DAS service, in case your DAS server runs multiple DAS types.
-);
-DROP SCHEMA test CASCADE;
-CREATE SCHEMA test;
-IMPORT FOREIGN SCHEMA test FROM SERVER das_python_mock INTO test;
-```
-
-Now you can query your DAS table under schema `test`, e.g. `SELECT * FROM test.<your_das_table>`
+Please refer to [https://github.com/raw-labs/das-server-python-mock](https://github.com/raw-labs/das-server-python-mock) for an example on how to run a DAS server and connect it to this PostgreSQL instance.
