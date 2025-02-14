@@ -18,7 +18,7 @@ ENV LANG=en_US.UTF-8
 # Copy initialization SQL script
 COPY init.sql /docker-entrypoint-initdb.d/
 
-# Copy your custom DAS installer
+# Copy the custom DAS installer
 COPY install_das.sh /install_das.sh
 
 # Install required packages and run install_das
@@ -35,7 +35,7 @@ RUN set -eux \
         postgresql-server-dev-15 \
         alien \
         libaio1 \
-    # ---- Install your DAS components ----
+    # ---- Install the DAS components ----
     && /install_das.sh "${DAS_C_VERSION}" "${DAS_PY_VERSION}" \
     # ---- Clean up apt cache ----
     && rm -rf /var/lib/apt/lists/*
