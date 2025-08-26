@@ -81,3 +81,63 @@ You will be prompted for the password (in this example, `mysecret`).
 ## Using the DAS Extension
 
 Please refer to [https://github.com/raw-labs/das-server-python-mock](https://github.com/raw-labs/das-server-python-mock) for an example on how to run a DAS server and connect it to this PostgreSQL instance.
+
+---
+
+## Publish to GitHub Container Registry (GHCR)
+
+This repo includes a GitHub Actions workflow that builds and publishes the Docker image to GHCR when you push a tag (for example, `v0.1.0`). The image will be available as:
+
+```
+docker pull ghcr.io/raw-labs/das-client-postgresql:<TAG>
+```
+
+### One-time setup
+
+- Ensure the repository has Actions workflow permissions with write access:
+  - Settings → Actions → General → Workflow permissions → "Read and write permissions".
+- After the first publish, optionally set package visibility to Public in the GHCR package settings if you want anonymous pulls.
+
+### Release and publish via tag
+
+1. Create and push a tag from your local machine:
+
+   ```bash
+   git tag v0.1.0
+   git push origin v0.1.0
+   ```
+
+   Or create a Release in GitHub with a tag like `v0.1.0`.
+
+2. The workflow will build and push:
+   - `ghcr.io/raw-labs/das-client-postgresql:0.1.0`
+   - `ghcr.io/raw-labs/das-client-postgresql:latest` (on tag builds)
+
+3. Pull the image:
+
+   ```bash
+   docker pull ghcr.io/raw-labs/das-client-postgresql:0.1.0
+   ```
+
+### Manual publish (no CI)
+
+If you prefer to push manually:
+
+1. Create a GitHub token with package write permissions (classic PAT with `write:packages` or a fine‑grained token with package:write for this repo).
+2. Log in to GHCR:
+
+   ```bash
+   echo "$GITHUB_TOKEN" | docker login ghcr.io -u <YOUR_GH_USERNAME> --password-stdin
+   ```
+
+3. Build and push:
+
+   ```bash
+   export IMAGE=ghcr.io/raw-labs/das-client-postgresql:0.1.0
+   docker build -t "$IMAGE" .
+   docker push "$IMAGE"
+   ```
+
+Notes:
+- The CI workflow currently builds for `linux/amd64`. Enable multi‑arch by adding `platforms: linux/amd64,linux/arm64` in `.github/workflows/docker-publish.yml` if needed.
+- To change the registry path (e.g., nested like `ghcr.io/raw-labs/das-sqlite/das-sqlite-server`), update the `images:` value in `.github/workflows/docker-publish.yml` and retag accordingly.
