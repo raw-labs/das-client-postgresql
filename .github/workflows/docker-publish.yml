@@ -32,26 +32,24 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Extract Docker metadata
-        id: meta
+      - name: Extract metadata for tag push
+        id: meta_tag
+        if: github.event_name == 'push'
         uses: docker/metadata-action@v5
         with:
-          images: |
-            ghcr.io/raw-labs/das-client-postgresql
+          images: ghcr.io/raw-labs/das-client-postgresql
           tags: |
             type=semver,pattern={{version}}
-            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=latest
 
-      - name: Compute manual tags
-        id: manual
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.tag }}" ]; then
-            echo "tags=ghcr.io/raw-labs/das-client-postgresql:${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
-            echo "Computed manual tag: ghcr.io/raw-labs/das-client-postgresql:${{ github.event.inputs.tag }}"
-          else
-            echo "tags=" >> $GITHUB_OUTPUT
-            echo "No manual tag provided; relying on metadata tags"
-          fi
+      - name: Extract metadata for manual dispatch
+        id: meta_dispatch
+        if: github.event_name == 'workflow_dispatch'
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/raw-labs/das-client-postgresql
+          tags: |
+            type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event.inputs.tag != '' }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -60,9 +58,11 @@ jobs:
           push: true
           platforms: linux/amd64
           tags: |
-            ${{ steps.meta.outputs.tags }}
-            ${{ steps.manual.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+            ${{ steps.meta_tag.outputs.tags }}
+            ${{ steps.meta_dispatch.outputs.tags }}
+          labels: |
+            ${{ steps.meta_tag.outputs.labels }}
+            ${{ steps.meta_dispatch.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
