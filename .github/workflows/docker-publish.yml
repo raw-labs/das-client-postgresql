@@ -41,7 +41,17 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=raw,value=latest,enable={{is_tag}}
-            type=raw,value=${{ github.event.inputs.tag || '' }},enable=${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag != '' }}
+
+      - name: Compute manual tags
+        id: manual
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.tag }}" ]; then
+            echo "tags=ghcr.io/raw-labs/das-client-postgresql:${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+            echo "Computed manual tag: ghcr.io/raw-labs/das-client-postgresql:${{ github.event.inputs.tag }}"
+          else
+            echo "tags=" >> $GITHUB_OUTPUT
+            echo "No manual tag provided; relying on metadata tags"
+          fi
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -49,7 +59,9 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ${{ steps.meta.outputs.tags }}
+            ${{ steps.manual.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
